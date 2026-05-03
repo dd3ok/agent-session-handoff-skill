@@ -5,7 +5,7 @@ Assume this session has no access to prior chat history, hidden reasoning, compa
 First, do not implement. Establish context in this order:
 
 1. Confirm the working directory and Git root.
-2. Read applicable instruction files such as AGENTS.md, AGENTS.override.md, PLANS.md, PLAN.md, HANDOFF.md, CLAUDE.md, and GEMINI.md.
+2. Read applicable instruction files such as AGENTS.md, AGENTS.override.md, PLANS.md, PLAN.md, CLAUDE.md, and GEMINI.md, plus HANDOFF.md if present.
 3. Run git status --short.
 4. Inspect the files listed under "Files to inspect first".
 5. Compare the handoff with the actual working tree.
@@ -21,7 +21,7 @@ Rules:
 
 # Handoff
 
-[Paste the self-contained handoff here or instruct the session to read HANDOFF.md at an exact path.]
+[If HANDOFF.md was written, instruct the session to read it at an exact path. If no handoff file was written, paste the full self-contained handoff here instead.]
 
 # First response expected
 

@@ -10,7 +10,7 @@ This repository contains session-continuity assets for coding agents such as Cod
 
 ## Rules
 
-- Keep the skill focused on handoff artifact generation.
+- Keep the skill focused on session handoff artifacts and safe continuation from `HANDOFF.md`.
 - Keep `/status`, `/new`, PTY control, and context-threshold policy outside the skill.
 - Do not claim a skill can execute interactive slash commands.
 - Use exact command names, exact markers, and conservative safety checks.
