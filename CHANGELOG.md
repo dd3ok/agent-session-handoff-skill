@@ -12,3 +12,4 @@ All notable changes to this repository are documented here.
 - Add security guidance for redacting secrets from handoff artifacts.
 - Clarify validation marker semantics and expanded artifact path conventions.
 - Expand the architecture handoff example with realistic boundary and changed-file detail.
+- Enrich expanded validation and pitfalls examples and expand README release documentation.
