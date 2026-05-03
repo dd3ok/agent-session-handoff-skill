@@ -1,6 +1,6 @@
 ---
 name: new-session-handoff
-description: Use when creating or resuming from a fresh coding-agent/Codex session handoff; includes HANDOFF.md, continuation prompt, resume prompt, 이어서 작업할 프롬프트, 핸드오프 만들어줘, 핸드오프 읽고 작업해줘, 핸드오프 보고 이어서 작업, or context-preserving summary before compaction or session rotation.
+description: Use when creating or resuming from a fresh coding-agent/Codex session handoff; includes HANDOFF.md, continuation prompt, resume prompt, 이어서 작업할 프롬프트, 핸드오프 만들어줘, 핸드오프 문서 만들어줘, 핸드오프 읽고 작업해줘, 핸드오프 문서 읽고 작업해줘, 핸드오프 보고 이어서 작업, or context-preserving summary before compaction or session rotation.
 ---
 
 # New Session Handoff
@@ -13,7 +13,7 @@ This skill must not run interactive session commands such as Codex `/new`, contr
 
 ## Create Handoff
 
-Use this mode when the user asks to make a handoff, says `핸드오프 만들어줘`, save `HANDOFF.md`, prepare a new-session prompt, or preserve context before a new session.
+Use this mode when the user asks to make a handoff, says `핸드오프 만들어줘` or `핸드오프 문서 만들어줘`, save `HANDOFF.md`, prepare a new-session prompt, or preserve context before a new session.
 
 1. Inspect current state before summarizing:
    - `pwd`
@@ -57,7 +57,7 @@ Use this mode when the user asks to make a handoff, says `핸드오프 만들어
 
 ## Resume From Handoff
 
-Use this mode when the user asks to continue from a handoff, read `HANDOFF.md`, or says `핸드오프 읽고 작업해줘` or `핸드오프 보고 이어서 작업`.
+Use this mode when the user asks to continue from a handoff, read `HANDOFF.md`, or says `핸드오프 읽고 작업해줘`, `핸드오프 문서 읽고 작업해줘`, or `핸드오프 보고 이어서 작업`.
 
 1. Establish context before implementing:
    - Confirm `pwd`, Git root, branch, and `git status --short`.
