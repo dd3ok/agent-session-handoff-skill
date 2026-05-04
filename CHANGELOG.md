@@ -5,6 +5,7 @@ All notable changes to this repository are documented here.
 ## Unreleased
 
 - Remove legacy marker/checklist/expanded reference stubs and centralize marker semantics in `handoff-contract.md`.
+- Add Korean README usage examples and preserve Korean invocation phrases in skill frontmatter validation.
 - Add shared marker cross-field validation used by portable and repository validators.
 - Add repository validation scripts, detail artifact templates, staleness rules, and MIT license files.
 - Add a four-line `TL;DR / Operational Summary` requirement to handoff manifests.

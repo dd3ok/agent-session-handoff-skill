@@ -12,6 +12,28 @@ Portable session-continuity assets for coding agents such as Codex, Claude, Gemi
 - `HANDOFF_AUTOMATION_V1` markers let external orchestrators decide whether session rotation is safe.
 - The skill never runs `/new`, `/status`, controls PTYs, or edits application code while creating a handoff.
 
+## 한국어 사용 예
+
+이 skill은 한국어 요청도 명시적으로 지원합니다.
+
+```text
+핸드오프 만들어줘
+```
+
+현재 디스크/Git 상태를 확인한 뒤 `HANDOFF.md`와 `NEW_SESSION_PROMPT.txt`를 생성하거나 갱신합니다. handoff 생성 중에는 `/new`를 실행하지 않고, PTY를 제어하지 않으며, application code를 수정하지 않습니다.
+
+```text
+핸드오프 읽고 이어서 해줘
+```
+
+`HANDOFF.md`를 읽고 현재 디스크/Git 상태와 비교한 뒤, 불일치가 있으면 먼저 보고합니다. `SAFE_FOR_NEW_SESSION: yes`이고 사용자가 구현 계속을 요청한 경우에만 가장 작은 다음 작업으로 이어갑니다.
+
+참고:
+
+- `핸드오프 읽고 이어서 작업`도 같은 resume 의도로 처리합니다.
+- 세션 reset, `/new`, PTY 제어, context threshold 정책은 이 skill이 아니라 외부 orchestrator 책임입니다.
+- 정확한 runtime 계약은 `skills/new-session-handoff/SKILL.md`와 `skills/new-session-handoff/references/handoff-contract.md`를 기준으로 합니다.
+
 ## Canonical Contract
 
 Runtime behavior is intentionally concentrated in the distributed skill:

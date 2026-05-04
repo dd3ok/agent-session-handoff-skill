@@ -74,6 +74,10 @@ TRUST_ORDER_LINES = [
     "5. Focused detail artifacts referenced by `HANDOFF.md`.",
     "6. Prior chat history only if explicitly provided by the user.",
 ]
+KOREAN_INVOCATION_PHRASES = [
+    "핸드오프 만들어줘",
+    "핸드오프 읽고 이어서 해줘",
+]
 
 
 class Validator:
@@ -130,6 +134,9 @@ class Validator:
             self.fail("frontmatter description must limit use to explicit user requests")
         if "/new" not in lower_description or "pty" not in lower_description:
             self.fail("frontmatter description must state the session-control boundary")
+        for phrase in KOREAN_INVOCATION_PHRASES:
+            if phrase not in description:
+                self.fail(f"frontmatter description must include Korean invocation phrase: {phrase}")
         body = "\n".join(lines[end + 1 :])
         if not body.strip().startswith("# New Session Handoff"):
             self.fail("SKILL.md body should start with '# New Session Handoff'")

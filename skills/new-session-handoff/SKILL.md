@@ -1,6 +1,6 @@
 ---
 name: new-session-handoff
-description: "Use only when the user explicitly asks to create or resume HANDOFF.md artifacts for coding-agent session transfer, asks for a new-session continuation prompt, or says 핸드오프 만들어줘 / 핸드오프 읽고 이어서. Does not run /new, control PTYs, or modify application code while creating a handoff."
+description: "Use only when the user explicitly asks to create or resume HANDOFF.md artifacts for coding-agent session transfer, asks for a new-session continuation prompt, or says 핸드오프 만들어줘 / 핸드오프 읽고 이어서 해줘. Does not run /new, control PTYs, or modify application code while creating a handoff."
 ---
 
 # New Session Handoff
@@ -50,7 +50,7 @@ Use this mode when the user asks to create `HANDOFF.md`, prepare a new-session p
 
 ## Resume From Handoff
 
-Use this mode when the user asks to read `HANDOFF.md`, continue from a handoff, or says `핸드오프 읽고 이어서 작업`.
+Use this mode when the user asks to read `HANDOFF.md`, continue from a handoff, or says `핸드오프 읽고 이어서 작업` or `핸드오프 읽고 이어서 해줘`.
 
 1. Confirm cwd, Git root, branch, short HEAD, `git status --short`, and `git diff --stat`.
 2. Read applicable instruction files and `HANDOFF.md`.
