@@ -96,12 +96,27 @@ def main() -> int:
     )
     errors.extend(
         expect(
+            "written handoff path must be absolute",
+            {"HANDOFF_READY": "HANDOFF.md", "SAFE_FOR_NEW_SESSION": "no"},
+            False,
+        )
+    )
+    errors.extend(
+        expect(
+            "written handoff path must point to HANDOFF.md",
+            {"HANDOFF_READY": "/tmp/NOTES.md", "SAFE_FOR_NEW_SESSION": "no"},
+            False,
+        )
+    )
+    errors.extend(
+        expect(
             "safe requires no blockers",
             {"BLOCKERS": "waiting-for-user"},
             False,
         )
     )
     errors.extend(check_expanded_details_reference_required())
+    errors.extend(check_compact_details_reference_rejected())
 
     if errors:
         for error in errors:
@@ -163,6 +178,29 @@ def check_expanded_details_reference_required() -> list[str]:
     if not any("requires at least one detail artifact reference" in error for error in errors):
         return [
             "expanded details-ready handoff without detail references should fail, "
+            f"got errors={errors}"
+        ]
+    return []
+
+
+def check_compact_details_reference_rejected() -> list[str]:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "HANDOFF.md"
+        path.write_text(
+            minimal_handoff(
+                marker_block(
+                    HANDOFF_MODE="compact",
+                    DETAIL_ARTIFACTS_READY="not-needed",
+                    HANDOFF_READY="/tmp/HANDOFF.md",
+                ),
+                detail_reference="- `details/changed-files.md` - should not be here",
+            ),
+            encoding="utf-8",
+        )
+        errors = validate_handoff(path)
+    if not any("compact mode must not reference detail artifacts" in error for error in errors):
+        return [
+            "compact handoff with detail references should fail, "
             f"got errors={errors}"
         ]
     return []

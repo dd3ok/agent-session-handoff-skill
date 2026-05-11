@@ -1,6 +1,6 @@
 # Handoff Manifest
 
-Use this skeleton with `references/handoff-contract.md`. Keep `HANDOFF.md` as the recoverable entry manifest. Move large rationale, file ledgers, validation notes, and pitfalls into focused detail artifacts when expanded mode is needed.
+Use this skeleton with `references/handoff-contract.md`. Default to `.new-session-handoff/HANDOFF.md`, keep the file compact, and move focused recovery notes into `details/*.md` only in expanded mode.
 
 ## TL;DR / Operational Summary
 
@@ -52,16 +52,16 @@ Read in this order:
 1. Instruction files:
 2. `HANDOFF.md` sections:
 3. Focused detail artifacts, if any:
-   - `<path>` — purpose:
+   - `<path>` - purpose:
 4. Files to inspect first:
-   - `<path>` — purpose or symbol/anchor:
+   - `<path>` - purpose or symbol/anchor:
 
 Relative detail artifact paths are resolved against the directory containing this `HANDOFF.md`.
 
 ## Change Manifest
 
 - Changed:
-  - `<path>` — semantic change:
+  - `<path>` - semantic change:
 - Created:
 - Deleted:
 - Moved:
@@ -101,13 +101,13 @@ Relative detail artifact paths are resolved against the directory containing thi
 3. Validation/cleanup:
 4. Optional later work:
 
-## Fresh Session Prompt
+## Resume Prompt
 
 ```text
-[Paste or reference the generated NEW_SESSION_PROMPT.txt here. It must tell the next session to read this HANDOFF.md first, verify disk state, inspect required files, and stop if SAFE_FOR_NEW_SESSION is not yes.]
+Read this handoff, verify cwd/Git state/status/diff, compare it with disk state, report consistency, and continue only with the next action if SAFE_FOR_NEW_SESSION is yes.
 ```
 
-- New session prompt path: `NEW_SESSION_PROMPT.txt | not-written`
+- New session prompt file: `not-written` by default; create a separate file only when explicitly requested.
 
 ## Automation Markers
 

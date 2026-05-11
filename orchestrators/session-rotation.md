@@ -6,7 +6,7 @@ It is not a Skill. The `new-session-handoff` skill prepares handoff artifacts; t
 
 ## Responsibilities
 
-- Skill `new-session-handoff`: inspect repository state, create `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, or focused detail artifacts, and print readiness markers.
+- Skill `new-session-handoff`: inspect repository state, create `.new-session-handoff/HANDOFF.md` by default, optionally create focused detail artifacts or a separate prompt file when requested, and print readiness markers.
 - External orchestrator: inspect the agent's status command, detect near-full context or compact events, wait for work completion, request handoff generation, send the agent-specific session-reset command, and inject the resume prompt.
 
 ## Rotation Flow
@@ -24,7 +24,7 @@ It is not a Skill. The `new-session-handoff` skill prepares handoff artifacts; t
 
 3. Request a handoff.
    - Ask the active agent to use the `new-session-handoff` skill or equivalent handoff workflow.
-   - Prefer saving `HANDOFF.md` when repository state will continue across sessions.
+   - Prefer saving `.new-session-handoff/HANDOFF.md` when repository state will continue across sessions.
    - Require the final markers.
 
 4. Check the final marker block.
@@ -57,18 +57,18 @@ It is not a Skill. The `new-session-handoff` skill prepares handoff artifacts; t
    - Inject a short resume prompt.
 
 6. Resume.
-   - The new session should read instruction files and `HANDOFF.md`.
+   - The new session should read instruction files and the handoff path recorded in `HANDOFF_READY`.
    - If `HANDOFF_MODE: expanded`, it should read only the detail artifacts required for the smallest next step.
    - It should verify handoff consistency against the working tree before editing.
 
 ## Suggested Resume Prompt
 
-Use the canonical template at `skills/new-session-handoff/references/new-session-prompt-template.txt`. A short PTY-friendly version is:
+Use the embedded `## Resume Prompt` from `HANDOFF.md` when possible. A short PTY-friendly fallback is:
 
 ```text
 This is a continuation after a session rotation.
 
-Read applicable instruction files and HANDOFF.md first. Confirm the working directory, Git root, branch, short HEAD, git status, and diff stat. If HANDOFF.md lists detail artifacts, read only those needed for the smallest next step. Compare HANDOFF.md with the actual working tree. If they conflict, prefer the working tree.
+Read applicable instruction files and the handoff recorded in HANDOFF_READY first. Confirm the working directory, Git root, branch, short HEAD, git status, and diff stat. If HANDOFF.md lists detail artifacts, read only those needed for the smallest next step. Compare HANDOFF.md with the actual working tree. If they conflict, prefer the working tree.
 
 Then report:
 1. Loaded instructions:
@@ -83,7 +83,7 @@ Continue only if SAFE_FOR_NEW_SESSION is yes and the user asked for implementati
 ## Safe Rotation Conditions
 
 - The previous session has completed or paused at a clean checkpoint.
-- `HANDOFF.md` exists or the orchestrator captured `NEW_SESSION_PROMPT.txt`.
+- `HANDOFF.md` exists or the orchestrator captured an explicit prompt-only handoff.
 - cwd, Git root, branch, short HEAD, `git status --short`, and `git diff --stat` were recorded in the handoff.
 - Dirty and staged files were recorded.
 - Last validation command and result were recorded, or skipped validation has an explicit low-risk reason and next validation command.

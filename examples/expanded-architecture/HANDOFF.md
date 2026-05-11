@@ -102,17 +102,19 @@
 3. Validation/cleanup: Run billing unit tests.
 4. Optional later work: Extract shared timestamp formatter if another caller needs it.
 
-## Fresh Session Prompt
+## Resume Prompt
 
 ```text
-Read /workspace/billing-app/HANDOFF.md first, then read only the listed detail artifacts needed to fix timestamp formatting. Verify disk state before editing. If safe, inspect src/billing/invoiceService.ts and tests/billing/invoice.integration.test.ts, fix the smallest timestamp issue, and rerun npm test -- tests/billing/invoice.integration.test.ts.
+Read /workspace/billing-app/.new-session-handoff/HANDOFF.md first, then read only the listed detail artifacts needed to fix timestamp formatting. Verify disk state before editing. If safe, inspect src/billing/invoiceService.ts and tests/billing/invoice.integration.test.ts, fix the smallest timestamp issue, and rerun npm test -- tests/billing/invoice.integration.test.ts.
 ```
+
+- New session prompt file: not-written
 
 ## Automation Markers
 
 ```text
 HANDOFF_AUTOMATION_V1
-HANDOFF_READY: /workspace/billing-app/HANDOFF.md
+HANDOFF_READY: /workspace/billing-app/.new-session-handoff/HANDOFF.md
 HANDOFF_SCHEMA_VERSION: 1
 HANDOFF_MODE: expanded
 DETAIL_ARTIFACTS_READY: yes

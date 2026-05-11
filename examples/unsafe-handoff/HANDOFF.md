@@ -83,17 +83,19 @@
 3. Validation/cleanup: update handoff after command finishes.
 4. Optional later work: none
 
-## Fresh Session Prompt
+## Resume Prompt
 
 ```text
-Read /workspace/shop/HANDOFF.md and verify disk state, but do not rotate or implement yet. SAFE_FOR_NEW_SESSION is no because npm test -- checkout is still running. Wait for the running command result to be recorded before continuing.
+Read /workspace/shop/.new-session-handoff/HANDOFF.md and verify disk state, but do not rotate or implement yet. SAFE_FOR_NEW_SESSION is no because npm test -- checkout is still running. Wait for the running command result to be recorded before continuing.
 ```
+
+- New session prompt file: not-written
 
 ## Automation Markers
 
 ```text
 HANDOFF_AUTOMATION_V1
-HANDOFF_READY: /workspace/shop/HANDOFF.md
+HANDOFF_READY: /workspace/shop/.new-session-handoff/HANDOFF.md
 HANDOFF_SCHEMA_VERSION: 1
 HANDOFF_MODE: compact
 DETAIL_ARTIFACTS_READY: not-needed

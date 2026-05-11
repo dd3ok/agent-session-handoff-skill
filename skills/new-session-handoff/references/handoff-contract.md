@@ -1,24 +1,25 @@
 # Handoff Contract
 
-This is the canonical runtime contract for `new-session-handoff`. `HANDOFF.md` is a recoverable entry manifest, not a transcript dump and not proof that code is correct.
+`HANDOFF.md` is a recoverable entry manifest, not a transcript and not proof that code is correct. Keep the skill body short; use this file only for marker semantics, safe/unsafe criteria, cleanup, and validation edge cases.
 
-Recoverability comes first. Compactness comes second.
+## Defaults
+
+- Default artifact: `.new-session-handoff/HANDOFF.md`.
+- Default prompt: an embedded `## Resume Prompt` section inside `HANDOFF.md`.
+- Do not create `NEW_SESSION_PROMPT.txt` by default. Create it only when the user explicitly asks for a separate prompt file or an external orchestrator requires one.
+- Create `details/*.md` only in expanded mode.
+
+Resume lookup order:
+
+1. User-provided handoff path.
+2. `.new-session-handoff/HANDOFF.md`.
+3. legacy `HANDOFF.md`.
 
 ## Modes
 
 - `compact`: one `HANDOFF.md` contains the recovery state.
-- `expanded`: `HANDOFF.md` remains the entry manifest and links focused `details/*.md` artifacts.
+- `expanded`: `HANDOFF.md` remains the entry manifest and links focused `details/*.md` artifacts relative to the handoff directory.
 - `prompt-only`: no files are written; the response contains a self-contained continuation prompt and marker values use `HANDOFF_READY: not-written`.
-
-Expanded detail paths are relative to the directory containing `HANDOFF.md` unless the handoff explicitly says otherwise.
-
-Recommended expanded artifacts:
-
-- `details/architecture.md`: boundaries, data flow, and rationale.
-- `details/changed-files.md`: file-by-file semantic ledger and anchors.
-- `details/validation.md`: commands, results, key failures, and next checks.
-- `details/pitfalls.md`: failed approaches and do-not-repeat notes.
-- `details/open-questions.md`: unresolved questions when they need more structure.
 
 Each detail artifact must answer one recovery question. Do not write raw transcripts, full diffs, long logs, shell history, or chat history unless the user explicitly asks and the content is essential and redacted.
 
@@ -34,7 +35,7 @@ Each detail artifact must answer one recovery question. Do not write raw transcr
 - change manifest for changed, created, deleted, moved, staged, inspected, and unknown files.
 - decisions, rationale, risks, pitfalls, failed approaches, and unresolved questions.
 - validation manifest with command, result, key failure lines, skipped checks, next validation, secret redaction check, and observable completion criteria.
-- fresh-session prompt path or embedded prompt.
+- embedded resume prompt or an explicitly requested external prompt file path.
 - exactly one automation marker block.
 
 ## Trust Order
@@ -71,11 +72,24 @@ Summarize only verified facts. Use `Unknown` or `확인 필요` for unverified d
 
 ## Resume Contract
 
-Before implementation, confirm current disk state, read applicable instructions, read `HANDOFF.md`, resolve relative detail artifact paths against the handoff directory, inspect required files, and compare handoff claims with the working tree.
+Before implementation, confirm current disk state, read applicable instructions, read the selected handoff, resolve relative detail artifact paths against the handoff directory, inspect required files, and compare handoff claims with the working tree.
 
 Report the loaded instructions, repo state, handoff consistency, detail artifacts read, missing or conflicting paths, and smallest next step before editing.
 
 If `SAFE_FOR_NEW_SESSION` is not `yes`, stop after the report unless the user explicitly instructs how to proceed.
+
+## Cleanup
+
+After resume, delete generated handoff artifacts only when:
+
+- disk verification completed.
+- handoff is consistent, or mismatch was reported.
+- `SAFE_FOR_NEW_SESSION: yes`.
+- artifact is generated and untracked.
+- all referenced detail artifacts were read or are not needed.
+- the user did not ask to preserve handoff records.
+
+Do not delete tracked files. Do not delete unsafe, stale, or user-authored handoffs.
 
 ## Secret Hygiene
 
@@ -110,16 +124,16 @@ Field meanings:
 - `HANDOFF_SCHEMA_VERSION`: currently `1`.
 - `HANDOFF_MODE`: `compact`, `expanded`, or `prompt-only`.
 - `DETAIL_ARTIFACTS_READY`: `yes` for verified expanded artifacts, `not-needed` for compact or prompt-only, otherwise `no`.
-- `NEW_SESSION_PROMPT_READY`: `yes` when a continuation prompt exists or was provided.
+- `NEW_SESSION_PROMPT_READY`: `yes` when an embedded or file-based continuation prompt exists or was provided.
 - `DISK_STATE_RECORDED`: `yes` only when the required repo snapshot was recorded.
-- `VALIDATION_RECORDED`: `yes` when validation status is recorded, including passed, failed, or intentionally skipped validation with low-risk reason and next command.
+- `VALIDATION_RECORDED`: `yes` when validation status is recorded, including passed, failed, or intentionally skipped validation with reason and next command.
 - `SECRET_REDACTION_CHECKED`: `yes` only after checking generated artifacts for secrets.
 - `SAFE_FOR_NEW_SESSION`: `yes` only when the checklist below passes.
 - `BLOCKERS`: `none` or a short reason preventing safe rotation.
 
 The marker value schema lives at `schemas/handoff-automation-v1.schema.json`.
 
-## `SAFE_FOR_NEW_SESSION: yes`
+## Safe Resume
 
 Set `SAFE_FOR_NEW_SESSION: yes` only when all are true:
 
@@ -129,11 +143,13 @@ Set `SAFE_FOR_NEW_SESSION: yes` only when all are true:
 - `HANDOFF.md` exists, or prompt-only mode intentionally records `HANDOFF_READY: not-written`.
 - every referenced detail artifact exists, or details are `not-needed`.
 - disk-state conflict handling is stated.
-- validation command and result are recorded, or skipped validation has a low-risk reason and next command.
+- validation command and result are recorded, or skipped validation has a reason and next command.
 - secret redaction was checked.
 - no unresolved user question blocks continuation.
 - the next step is singular, executable, and narrow.
 - `BLOCKERS: none`.
+
+A skipped validation can still be safe only when the reason is narrow and explicit, such as docs-only handoff work, no applicable test harness, or user-requested prompt-only output. Record the next validation command whenever one exists.
 
 A failed validation command does not automatically force `SAFE_FOR_NEW_SESSION: no`. It may still be safe when the command has finished, key failure lines are recorded, the next step is narrow, and continuing cannot overwrite unknown state.
 

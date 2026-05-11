@@ -109,5 +109,14 @@ def validate_marker_semantics(values: dict[str, str]) -> list[str]:
         errors.append("prompt-only mode requires HANDOFF_READY=not-written")
     elif mode in {"compact", "expanded"} and handoff_ready == "not-written":
         errors.append(f"{mode} mode requires HANDOFF_READY to point to HANDOFF.md")
+    elif mode in {"compact", "expanded"} and handoff_ready:
+        if not _is_absolute_handoff_path(handoff_ready):
+            errors.append(f"{mode} mode requires HANDOFF_READY to be an absolute path to HANDOFF.md")
 
     return errors
+
+
+def _is_absolute_handoff_path(value: str) -> bool:
+    if not value.endswith("/HANDOFF.md") and not value.endswith("\\HANDOFF.md"):
+        return False
+    return value.startswith("/") or bool(re.match(r"^[A-Za-z]:[\\/]", value))

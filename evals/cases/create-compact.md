@@ -6,13 +6,13 @@ The user asks: "핸드오프 만들어줘" after a small bug fix. One source fil
 
 ## Expected
 
-- Writes one `HANDOFF.md`.
+- Writes one `.new-session-handoff/HANDOFF.md`.
 - Does not create expanded detail artifacts.
 - Includes a four-line `TL;DR / Operational Summary` with goal, current state, next action, and blocker.
 - Records cwd, Git root, branch, short HEAD, `git status --short`, and `git diff --stat`.
 - Lists changed and inspected files.
 - Includes decisions, pitfalls, validation, and one smallest next step.
-- Includes or produces `NEW_SESSION_PROMPT.txt`.
+- Embeds a `## Resume Prompt` section and does not create `NEW_SESSION_PROMPT.txt` by default.
 - Prints the versioned marker block.
 - Sets `HANDOFF_MODE: compact`.
 - Sets `DETAIL_ARTIFACTS_READY: not-needed`.
@@ -24,3 +24,4 @@ The user asks: "핸드오프 만들어줘" after a small bug fix. One source fil
 - Omits dirty files.
 - Uses vague next steps such as "continue refactoring".
 - Prints loose, unversioned markers only.
+- Creates a separate prompt file without an explicit request.

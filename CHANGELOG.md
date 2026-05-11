@@ -4,10 +4,14 @@ All notable changes to this repository are documented here.
 
 ## Unreleased
 
+- Default generated handoffs to `.new-session-handoff/HANDOFF.md` with an embedded `## Resume Prompt`.
+- Stop treating `NEW_SESSION_PROMPT.txt` and detail templates as default skill-package artifacts.
+- Add verified-resume cleanup policy for deleting only untracked generated handoff artifacts.
+- Tighten marker validation so written `HANDOFF_READY` values must be absolute `HANDOFF.md` paths.
 - Remove legacy marker/checklist/expanded reference stubs and centralize marker semantics in `handoff-contract.md`.
 - Add Korean README usage examples and preserve Korean invocation phrases in skill frontmatter validation.
 - Add shared marker cross-field validation used by portable and repository validators.
-- Add repository validation scripts, detail artifact templates, staleness rules, and MIT license files.
+- Add repository validation scripts, staleness rules, and MIT license files.
 - Add a four-line `TL;DR / Operational Summary` requirement to handoff manifests.
 - Reframe `HANDOFF.md` as a recoverable entry manifest rather than a forced full summary.
 - Add focused expanded handoff artifact guidance for large architecture or multi-file work.

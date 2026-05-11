@@ -44,17 +44,9 @@ HANDOFF_FILES = [
     ROOT / "examples" / "expanded-architecture" / "HANDOFF.md",
     ROOT / "examples" / "unsafe-handoff" / "HANDOFF.md",
 ]
-DETAIL_TEMPLATES = [
-    "detail-architecture-template.md",
-    "detail-changed-files-template.md",
-    "detail-validation-template.md",
-    "detail-open-questions-template.md",
-    "detail-pitfalls-template.md",
-]
 CANONICAL_REFERENCES = [
     "handoff-contract.md",
     "handoff-template.md",
-    "new-session-prompt-template.txt",
 ]
 MARKER_ENUMS = {
     "HANDOFF_SCHEMA_VERSION": {"1"},
@@ -149,14 +141,36 @@ class Validator:
             self.require_exists(SKILL_DIR / ref)
         for name in CANONICAL_REFERENCES:
             self.require_exists(SKILL_DIR / "references" / name)
-        for name in DETAIL_TEMPLATES:
-            self.require_exists(SKILL_DIR / "references" / name)
         self.require_exists(SKILL_DIR / "schemas" / "handoff-automation-v1.schema.json")
         openai_yaml = self.read(SKILL_DIR / "agents" / "openai.yaml")
         if "allow_implicit_invocation" in openai_yaml:
             self.fail("agents/openai.yaml must not use unvalidated allow_implicit_invocation policy")
-        if "NEW_SESSION_PROMPT.txt" not in skill_text:
-            self.fail("SKILL.md must name NEW_SESSION_PROMPT.txt as the canonical prompt file")
+        required_skill_phrases = [
+            ".new-session-handoff/HANDOFF.md",
+            "Do not create `NEW_SESSION_PROMPT.txt` by default",
+            "delete only untracked generated handoff artifacts",
+        ]
+        for phrase in required_skill_phrases:
+            if phrase not in skill_text:
+                self.fail(f"SKILL.md missing lightweight default policy: {phrase}")
+
+        contract_text = self.read(SKILL_DIR / "references" / "handoff-contract.md")
+        required_contract_phrases = [
+            ".new-session-handoff/HANDOFF.md",
+            "NEW_SESSION_PROMPT_READY",
+            "embedded",
+            "legacy `HANDOFF.md`",
+            "Do not delete tracked files",
+        ]
+        for phrase in required_contract_phrases:
+            if phrase not in contract_text:
+                self.fail(f"handoff-contract.md missing lightweight policy: {phrase}")
+
+        template_text = self.read(SKILL_DIR / "references" / "handoff-template.md")
+        if "## Resume Prompt" not in template_text:
+            self.fail("handoff-template.md must embed a Resume Prompt section")
+        if "## Fresh Session Prompt" in template_text:
+            self.fail("handoff-template.md should use Resume Prompt, not Fresh Session Prompt")
 
     def validate_schema_contract(self) -> None:
         expected_names = [line.split(":", 1)[0] for line in EXPECTED_MARKER_LINES[1:-1]]
@@ -240,7 +254,7 @@ class Validator:
             "## Change Manifest",
             "## Validation Manifest",
             "## Remaining Work",
-            "## Fresh Session Prompt",
+            "## Resume Prompt",
             "## Automation Markers",
         ]
         tldr_fields = ["- Goal:", "- Current state:", "- Next action:", "- Blocker:"]
@@ -263,6 +277,19 @@ class Validator:
                 self.fail(f"{path.relative_to(ROOT)} must state disk-conflict handling")
             if "SECRET_REDACTION_CHECKED: yes" in text and "Secret redaction check:" not in text:
                 self.fail(f"{path.relative_to(ROOT)} records secret check yes without a check method")
+            if "references/handoff-template.md" not in path.as_posix() and "HANDOFF_MODE: compact" in text:
+                detail_refs = sorted(set(re.findall(r"`(details/[^`]+\.md)`", text)))
+                if detail_refs:
+                    self.fail(f"{path.relative_to(ROOT)} compact handoff references detail artifacts")
+            if path.name == "HANDOFF.md" and "HANDOFF_READY: /" in text:
+                marker_line = next(
+                    (line for line in text.splitlines() if line.startswith("HANDOFF_READY: /")),
+                    "",
+                )
+                if "references/handoff-template.md" not in path.as_posix() and ".new-session-handoff/HANDOFF.md" not in marker_line:
+                    self.fail(f"{path.relative_to(ROOT)} should demonstrate the default .new-session-handoff/HANDOFF.md path")
+            if "NEW_SESSION_PROMPT.txt" in text and "external prompt file" not in text:
+                self.fail(f"{path.relative_to(ROOT)} should embed the resume prompt by default")
         template = self.read(SKILL_DIR / "references" / "handoff-contract.md")
         for line in TRUST_ORDER_LINES:
             if line not in template:

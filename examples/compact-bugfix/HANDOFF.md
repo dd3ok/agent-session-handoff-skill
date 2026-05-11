@@ -100,17 +100,19 @@
 3. Validation/cleanup: none
 4. Optional later work: none
 
-## Fresh Session Prompt
+## Resume Prompt
 
 ```text
-Read HANDOFF.md, verify disk state, inspect src/auth/session.ts and tests/auth/session.test.ts, then summarize the changed files and recorded validation results.
+Read /workspace/app/.new-session-handoff/HANDOFF.md, verify disk state, inspect src/auth/session.ts and tests/auth/session.test.ts, then summarize the changed files and recorded validation results.
 ```
+
+- New session prompt file: not-written
 
 ## Automation Markers
 
 ```text
 HANDOFF_AUTOMATION_V1
-HANDOFF_READY: /workspace/app/HANDOFF.md
+HANDOFF_READY: /workspace/app/.new-session-handoff/HANDOFF.md
 HANDOFF_SCHEMA_VERSION: 1
 HANDOFF_MODE: compact
 DETAIL_ARTIFACTS_READY: not-needed

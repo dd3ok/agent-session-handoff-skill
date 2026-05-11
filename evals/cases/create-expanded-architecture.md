@@ -6,9 +6,9 @@ The user asks for a handoff after a multi-file architecture change. The rational
 
 ## Expected
 
-- Writes `HANDOFF.md` as the entry manifest.
+- Writes `.new-session-handoff/HANDOFF.md` as the entry manifest.
 - Includes a four-line `TL;DR / Operational Summary` with goal, current state, next action, and blocker.
-- Creates focused detail artifacts, by default `details/architecture.md`, `details/changed-files.md`, `details/validation.md`, and `details/pitfalls.md` relative to `HANDOFF.md`.
+- Creates focused `details/*.md` artifacts only when needed, relative to `HANDOFF.md`.
 - Lists each detail artifact in the required reading order with a short purpose.
 - Keeps raw transcripts, long logs, and full diffs out of artifacts.
 - Sets `HANDOFF_MODE: expanded`.

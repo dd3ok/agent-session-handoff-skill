@@ -1,26 +1,26 @@
-# Agent Session Handoff Skill
+# New Session Handoff
 
-Portable session-continuity assets for coding agents such as Codex, Claude, Gemini, and external PTY orchestrators.
+A lightweight Agent Skill for creating a verified `HANDOFF.md` so coding work can continue in a fresh agent session without relying on prior chat history.
 
-`new-session-handoff` creates or resumes a verified `HANDOFF.md` for moving long coding-agent work into a fresh session. The handoff is a recoverable entry manifest, not a raw transcript and not a claim that the code is correct.
+`new-session-handoff` does not run `/new`, control PTYs, rotate sessions, or edit application code while creating a handoff. It only writes a recoverable handoff artifact and a machine-readable readiness marker.
 
-## TL;DR
+Default artifact:
 
-- `HANDOFF.md` records verified repo state, changed files, validation status, risks, and one executable next step.
-- Large work can use focused `details/*.md` artifacts while keeping `HANDOFF.md` as the landing page.
-- `NEW_SESSION_PROMPT.txt` gives the next agent a copy-paste continuation prompt.
-- `HANDOFF_AUTOMATION_V1` markers let external orchestrators decide whether session rotation is safe.
-- The skill never runs `/new`, `/status`, controls PTYs, or edits application code while creating a handoff.
+```text
+.new-session-handoff/HANDOFF.md
+```
+
+The default handoff embeds a `## Resume Prompt` section. `NEW_SESSION_PROMPT.txt` is not created unless the user explicitly asks for a separate prompt file or an external orchestrator requires one.
+
+After the next session reads and verifies the handoff, untracked generated handoff artifacts should be deleted. Tracked files and unsafe/stale handoffs must be preserved.
 
 ## 한국어 사용 예
-
-이 skill은 한국어 요청도 명시적으로 지원합니다.
 
 ```text
 핸드오프 만들어줘
 ```
 
-현재 디스크/Git 상태를 확인한 뒤 `HANDOFF.md`와 `NEW_SESSION_PROMPT.txt`를 생성하거나 갱신합니다. handoff 생성 중에는 `/new`를 실행하지 않고, PTY를 제어하지 않으며, application code를 수정하지 않습니다.
+현재 디스크/Git 상태를 확인한 뒤 `.new-session-handoff/HANDOFF.md`를 생성하거나 갱신합니다. handoff 생성 중에는 `/new`를 실행하지 않고, PTY를 제어하지 않으며, application code를 수정하지 않습니다.
 
 ```text
 핸드오프 읽고 이어서 해줘
@@ -28,24 +28,17 @@ Portable session-continuity assets for coding agents such as Codex, Claude, Gemi
 
 `HANDOFF.md`를 읽고 현재 디스크/Git 상태와 비교한 뒤, 불일치가 있으면 먼저 보고합니다. `SAFE_FOR_NEW_SESSION: yes`이고 사용자가 구현 계속을 요청한 경우에만 가장 작은 다음 작업으로 이어갑니다.
 
-참고:
-
-- `핸드오프 읽고 이어서 작업`도 같은 resume 의도로 처리합니다.
-- 세션 reset, `/new`, PTY 제어, context threshold 정책은 이 skill이 아니라 외부 orchestrator 책임입니다.
-- 정확한 runtime 계약은 `skills/new-session-handoff/SKILL.md`와 `skills/new-session-handoff/references/handoff-contract.md`를 기준으로 합니다.
-
 ## Canonical Contract
 
-Runtime behavior is intentionally concentrated in the distributed skill:
+Runtime behavior is concentrated in the distributed skill:
 
 - Skill router: `skills/new-session-handoff/SKILL.md`
 - Artifact contract: `skills/new-session-handoff/references/handoff-contract.md`
 - Handoff skeleton: `skills/new-session-handoff/references/handoff-template.md`
-- Prompt template: `skills/new-session-handoff/references/new-session-prompt-template.txt`
 - Marker schema: `skills/new-session-handoff/schemas/handoff-automation-v1.schema.json`
 - Portable validator: `skills/new-session-handoff/scripts/validate_handoff.py`
 
-README is a map. The contract files above are the source of truth for marker semantics, `SAFE_FOR_NEW_SESSION`, trust order, expanded artifacts, and resume behavior.
+README is a map. The contract files above are the source of truth for marker semantics, `SAFE_FOR_NEW_SESSION`, trust order, expanded artifacts, cleanup, and resume behavior.
 
 ## Repository Layout
 
@@ -62,9 +55,7 @@ README is a map. The contract files above are the source of truth for marker sem
 │       ├── agents/openai.yaml
 │       ├── references/
 │       │   ├── handoff-contract.md
-│       │   ├── handoff-template.md
-│       │   ├── new-session-prompt-template.txt
-│       │   └── detail-*-template.md
+│       │   └── handoff-template.md
 │       ├── schemas/handoff-automation-v1.schema.json
 │       └── scripts/
 │           ├── handoff_contract.py
@@ -75,7 +66,7 @@ README is a map. The contract files above are the source of truth for marker sem
 └── scripts/
 ```
 
-`skills/new-session-handoff/` is the portable skill package. The root-level `examples/`, `evals/`, `orchestrators/`, and `scripts/validate-repo.py` are maintainer assets. The root `scripts/validate_handoff.py` is a compatibility wrapper around the portable validator.
+`skills/new-session-handoff/` is the portable skill package. The root-level `examples/`, `evals`, `orchestrators/`, and `scripts/validate-repo.py` are maintainer assets. The root `scripts/validate_handoff.py` is a compatibility wrapper around the portable validator.
 
 ## Installation / Vendoring
 
@@ -101,7 +92,7 @@ ln -s ../../skills/new-session-handoff .claude/skills/new-session-handoff
 - `examples/compact-bugfix/`: compact handoff for a small bug fix.
 - `examples/expanded-architecture/`: expanded handoff with focused detail artifacts.
 - `examples/unsafe-handoff/`: intentionally unsafe handoff showing why `SAFE_FOR_NEW_SESSION: no` matters.
-- `examples/resume-prompt.example.txt`: prompt for continuing from a handoff.
+- `examples/resume-prompt.example.txt`: optional external prompt text for orchestrators that cannot read the embedded prompt.
 
 Examples are maintainer/demo material. They are not required in the distributed skill package.
 
@@ -113,10 +104,13 @@ Core expectations:
 
 - create mode does not modify application code.
 - generated artifacts contain verified facts or explicit unknowns.
+- default create mode writes `.new-session-handoff/HANDOFF.md`.
+- default create mode embeds a resume prompt instead of writing `NEW_SESSION_PROMPT.txt`.
 - resume mode verifies disk state before coding.
 - expanded mode uses focused detail artifacts instead of context dumps.
 - unsafe states do not emit `SAFE_FOR_NEW_SESSION: yes`.
 - secrets are redacted or omitted.
+- verified safe resume may delete only untracked generated handoff artifacts.
 
 ## Validation
 
@@ -133,7 +127,7 @@ python3 scripts/validate-repo.py
 To validate generated handoff artifacts directly:
 
 ```bash
-python3 scripts/validate_handoff.py HANDOFF.md
+python3 scripts/validate_handoff.py .new-session-handoff/HANDOFF.md
 ```
 
 The root validator command delegates to the portable validator inside `skills/new-session-handoff/scripts/`.

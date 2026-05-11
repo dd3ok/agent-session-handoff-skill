@@ -53,10 +53,12 @@ def validate_handoff(path: Path) -> list[str]:
         errors.append(f"{path}: SECRET_REDACTION_CHECKED=yes requires a Secret redaction check entry")
 
     details = values.get("DETAIL_ARTIFACTS_READY")
+    detail_refs = sorted(set(re.findall(r"`(details/[^`]+\.md)`", text)))
+    if values.get("HANDOFF_MODE") in {"compact", "prompt-only"} and detail_refs:
+        errors.append(f"{path}: {values.get('HANDOFF_MODE')} mode must not reference detail artifacts")
     if values.get("HANDOFF_MODE") == "expanded" and (
         details == "yes" or values.get("SAFE_FOR_NEW_SESSION") == "yes"
     ):
-        detail_refs = sorted(set(re.findall(r"`(details/[^`]+\.md)`", text)))
         if details == "yes" and not detail_refs:
             errors.append(
                 f"{path}: expanded mode with DETAIL_ARTIFACTS_READY=yes "
