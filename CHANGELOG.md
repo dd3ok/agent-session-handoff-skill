@@ -2,7 +2,7 @@
 
 All notable changes to this repository are documented here.
 
-## Unreleased
+## v1.0.0 - 2026-05-11
 
 - Require prompt-ready handoffs to include embedded or external resume prompt evidence.
 - Clarify resume lookup and cleanup ordering in `SKILL.md`.
