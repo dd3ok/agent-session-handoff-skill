@@ -151,6 +151,9 @@ class Validator:
             ".new-session-handoff/HANDOFF.md",
             "Do not create `NEW_SESSION_PROMPT.txt` by default",
             "delete only untracked generated handoff artifacts",
+            "Durable state files are not generated detail artifacts",
+            "A handoff is adopted only after",
+            "For inspect-only requests, do not clean up by default.",
         ]
         for phrase in required_skill_phrases:
             if phrase not in skill_text:
@@ -163,6 +166,10 @@ class Validator:
             "embedded",
             "legacy `HANDOFF.md`",
             "Do not delete tracked files",
+            "relevant durable state files",
+            "Durable state files are not generated detail artifacts",
+            "cleanup happens only after adoption",
+            "Cleanup scope is limited to the selected generated handoff",
         ]
         for phrase in required_contract_phrases:
             if phrase not in contract_text:
@@ -173,12 +180,22 @@ class Validator:
             self.fail("handoff-template.md must embed a Resume Prompt section")
         if "## Fresh Session Prompt" in template_text:
             self.fail("handoff-template.md should use Resume Prompt, not Fresh Session Prompt")
+        cleanup_eval_text = self.read(ROOT / "evals" / "cases" / "resume-cleanup.md")
+        for phrase in [
+            "only after adoption",
+            "inspect-only",
+            "external-path",
+            "Reports removed paths, kept paths, and reasons.",
+        ]:
+            if phrase not in cleanup_eval_text:
+                self.fail(f"evals/cases/resume-cleanup.md missing cleanup policy phrase: {phrase}")
 
     def validate_readme_format(self) -> None:
         readme_text = self.read(ROOT / "README.md")
         lines = readme_text.splitlines()
         first_line = lines[0] if lines else ""
-        if readme_text.startswith('"""') or readme_text.rstrip().endswith('"""'):
+        stripped_readme = readme_text.strip()
+        if stripped_readme.startswith('"""') or stripped_readme.endswith('"""'):
             self.fail("README.md must not be wrapped in triple quotes")
         if first_line != "# New Session Handoff Skill":
             self.fail("README.md must start with '# New Session Handoff Skill'")
@@ -214,21 +231,14 @@ class Validator:
         if len(queries) < 16:
             self.fail("evals/trigger-queries.json should contain at least 16 trigger queries")
 
-        query_objects = [query for query in queries if isinstance(query, dict)]
-        ids = [query.get("id") for query in query_objects]
-        if len(ids) != len(set(ids)):
-            self.fail("evals/trigger-queries.json contains duplicate ids")
-        if any(not isinstance(query_id, str) or not query_id.strip() for query_id in ids):
-            self.fail("evals/trigger-queries.json query ids must be non-empty strings")
-
-        positives = [query for query in query_objects if query.get("should_trigger") is True]
-        negatives = [query for query in query_objects if query.get("should_trigger") is False]
-        if len(positives) < 8:
-            self.fail("trigger evals should include at least 8 should_trigger=true queries")
-        if len(negatives) < 8:
-            self.fail("trigger evals should include at least 8 should_trigger=false queries")
-
         required_fields = {"id", "query", "should_trigger", "language", "category", "rationale"}
+        seen_ids: set[str] = set()
+        positives = 0
+        negatives = 0
+        has_korean_handoff_positive = False
+        has_korean_negative = False
+        has_secret_redaction_positive = False
+        present_negative_categories: set[str] = set()
         for index, query in enumerate(queries):
             if not isinstance(query, dict):
                 self.fail(f"trigger eval query #{index} must be an object")
@@ -236,21 +246,53 @@ class Validator:
             missing = required_fields - set(query)
             if missing:
                 self.fail(f"trigger eval query #{index} missing fields: {sorted(missing)}")
-            if not isinstance(query.get("query"), str) or not query["query"].strip():
+
+            query_id = query.get("id")
+            if not isinstance(query_id, str) or not query_id.strip():
+                self.fail(f"trigger eval query #{index} has invalid id")
+            elif query_id in seen_ids:
+                self.fail(f"evals/trigger-queries.json contains duplicate id: {query_id}")
+            else:
+                seen_ids.add(query_id)
+
+            query_text = query.get("query")
+            if not isinstance(query_text, str) or not query_text.strip():
                 self.fail(f"trigger eval query #{index} has empty query")
-            if type(query.get("should_trigger")) is not bool:
+
+            should_trigger = query.get("should_trigger")
+            category = query.get("category")
+            if should_trigger is True:
+                positives += 1
+                if isinstance(query_text, str) and "핸드오프" in query_text:
+                    has_korean_handoff_positive = True
+                if category == "secret-redaction":
+                    has_secret_redaction_positive = True
+            elif should_trigger is False:
+                negatives += 1
+                if query.get("language") == "ko":
+                    has_korean_negative = True
+                if isinstance(category, str):
+                    present_negative_categories.add(category)
+            else:
                 self.fail(f"trigger eval query #{index} should_trigger must be boolean")
+
             if query.get("language") not in {"en", "ko"}:
                 self.fail(f"trigger eval query #{index} language must be en or ko")
-            if not isinstance(query.get("category"), str) or not query["category"].strip():
+            if not isinstance(category, str) or not category.strip():
                 self.fail(f"trigger eval query #{index} has empty category")
             if not isinstance(query.get("rationale"), str) or not query["rationale"].strip():
                 self.fail(f"trigger eval query #{index} has empty rationale")
 
-        if not any("핸드오프" in query.get("query", "") for query in positives):
+        if positives < 8:
+            self.fail("trigger evals should include at least 8 should_trigger=true queries")
+        if negatives < 8:
+            self.fail("trigger evals should include at least 8 should_trigger=false queries")
+        if not has_korean_handoff_positive:
             self.fail("trigger evals should include Korean handoff trigger queries")
-        if not any(query.get("language") == "ko" and query.get("should_trigger") is False for query in queries):
+        if not has_korean_negative:
             self.fail("trigger evals should include Korean near-miss negative queries")
+        if not has_secret_redaction_positive:
+            self.fail("trigger evals should include secret-bearing handoff requests as should_trigger=true")
 
         near_miss_categories = {
             "ordinary-summary",
@@ -260,8 +302,7 @@ class Validator:
             "status-command",
             "state-file-authoring",
         }
-        present_categories = {query.get("category") for query in negatives}
-        missing_near_misses = near_miss_categories - present_categories
+        missing_near_misses = near_miss_categories - present_negative_categories
         if missing_near_misses:
             self.fail(f"trigger evals missing near-miss negative categories: {sorted(missing_near_misses)}")
 

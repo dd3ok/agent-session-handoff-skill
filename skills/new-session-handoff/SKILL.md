@@ -31,6 +31,8 @@ A handoff is a verified recovery manifest, not memory, not a transcript, and not
 
 If project state files such as `AGENTS.md`, `CLAUDE.md`, `PROJECT_STATE.md`, `TASKS.md`, `DECISIONS.md`, `PLAN.md`, or `PLANS.md` are relevant, list their paths and the specific reason to read them. Do not paste whole state files into `HANDOFF.md`.
 
+Durable state files are not generated detail artifacts and must not affect `DETAIL_ARTIFACTS_READY`.
+
 Read `references/context-packaging.md` when deciding whether to use compact, expanded, or prompt-only mode, or when project state files conflict with disk state.
 
 ## Create Handoff
@@ -57,12 +59,14 @@ Use when the user asks to read a handoff, continue from a handoff, or says `í•¸ë
 4. Compare handoff claims with the working tree. If they conflict, trust disk state and report the mismatch.
 5. Report loaded instructions, repo state, handoff consistency, missing or conflicting paths, and the first implementation step.
 6. If `SAFE_FOR_NEW_SESSION` is not `yes`, stop after the report unless the user explicitly instructs how to proceed.
-7. After reporting a verified safe resume, delete only untracked generated handoff artifacts unless the user asked to keep them.
+7. After reporting a verified safe resume, delete only untracked generated handoff artifacts that were adopted for this resume unless the user asked to keep them.
 
-If the user asked only to inspect or resume context, stop after the report and any eligible cleanup. Do not implement. If they explicitly asked to continue implementation and the handoff is safe, proceed with only the smallest remaining task under the repository instructions.
+A handoff is adopted only after it was selected, read, compared against current disk state, reported to the user, found `SAFE_FOR_NEW_SESSION: yes`, and used for a resume/continue request rather than inspect-only context loading.
+
+For inspect-only requests, do not clean up by default. Stop after the report. If the user asked to resume/continue and the handoff is safe, perform any eligible adopted-artifact cleanup, then proceed only with the smallest remaining task when implementation was explicitly requested.
 
 ## Safety Rules
 
 Never copy secrets, tokens, API keys, cookies, credentials, private keys, full environment values, shell history, or secret-bearing logs into handoff artifacts. Redact required mentions as `<REDACTED>`.
 
-Do not delete tracked files. Before deleting a handoff artifact, check that it is generated and untracked.
+Do not delete tracked files. Before deleting a handoff artifact, check that it is adopted, generated, and untracked. Never delete unsafe handoffs, stale or conflicting handoffs, external handoff paths, user-authored files, or artifacts needed to debug a failed resume.
